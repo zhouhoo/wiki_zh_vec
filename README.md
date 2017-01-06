@@ -1,7 +1,8 @@
 # wiki_zh_vec
-#a tool for train Chinese wiki corpus for word embeddings using word2vec and glove
+a tool for train Chinese wiki corpus for word embeddings using word2vec and glove
 
 Installing and building wiki_zh_vec:
+
 1. run require_install.sh to install required software.
 
 2. install the pacakage: python3 setup.py install
