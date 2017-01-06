@@ -11,7 +11,9 @@ DATA = os.environ.get("INPUT_DATA", "data")
 RAW_WIKI_ZH_URL = "https://dumps.wikimedia.org/zhwiki/latest/zhwiki-latest-pages-articles.xml.bz2"
 OPENCC_JSON = "/usr/share/opencc/t2s.json"
 
+TEMP_Software= 'tmp/'
 Glove_Build ='tmp/GloVe-1.2/build'
+Lexvec_Bin = 'tmp/lexvec_v1.0.1_linux_amd64'
 
 
 rule all:
@@ -20,18 +22,20 @@ rule all:
          DATA + "/zhwiki_extracted/zh_wiki",
          DATA + "/filtered/wiki_zh_no_punc",
          DATA + "/filtered/wiki_zh_tokened",
-         DATA + "/word2vec/",
+         DATA + "/word2vec/words",
          DATA + "/glove/zhs_wiki_vocab",
          DATA + "/glove/zhs_wiki_vocab",
          DATA + "/glove/zhs_wiki_cooccurence.bin",
          DATA + "/glove/zhs_wiki_shuff.bin",
-         DATA + "/glove/zhs_wiki_glove.vectors"
+         DATA + "/glove/zhs_wiki_glove.vectors",
+         DATA + "/lexvec/zhs_wiki_lexvec.vectors"
 
 rule clean:
     shell:
-        "for subdir in zhwiki_extracted filtered word2vec glove; "
+        "for subdir in zhwiki_extracted filtered word2vec glove lexvec; "
         "do echo Removing %(data)s/$subdir; "
-        "rm -rf %(data)s/$subdir; done" % {'data': DATA}
+        "rm -rf %(data)s/$subdir; rm -rf %(tmp)s/;done" % {'data': DATA,'tmp':TEMP_Software}
+
 
 
 
@@ -85,7 +89,7 @@ rule train_word2vec:
     input:
         DATA + "/filtered/wiki_zh_tokened"
     output:
-        DATA + "/word2vec/vector"
+        DATA + "/word2vec/words"
     shell:
         "python3 -m vector_train {input} {output}"
 
@@ -105,7 +109,7 @@ rule train_glove_curence:
     output:
         DATA + "/glove/zhs_wiki_cooccurence.bin"
     shell:
-        "%(glove_bin)s/cooccur -memory 4.0 -vocab-file {input.wiki_vocab}  -verbose 2 -window-size 5 < {input.tokened_wiki} > {output}"%{'glove_bin':Glove_Build}
+        "%(glove_bin)s/cooccur -memory 8.0 -vocab-file {input.wiki_vocab}  -verbose 2 -window-size 5 < {input.tokened_wiki} > {output}"%{'glove_bin':Glove_Build}
 
 
 rule train_glove_shuffle:
@@ -114,7 +118,7 @@ rule train_glove_shuffle:
     output:
         DATA + "/glove/zhs_wiki_shuff.bin"
     shell:
-        "%(glove_bin)s/shuffle  -memory 4.0 -verbose 2 < {input} > {output}"%{'glove_bin':Glove_Build}
+        "%(glove_bin)s/shuffle  -memory 8.0 -verbose 2 < {input} > {output}"%{'glove_bin':Glove_Build}
 
 
 rule train_glove_vector:
@@ -124,5 +128,13 @@ rule train_glove_vector:
     output:
         DATA + "/glove/zhs_wiki_glove.vectors"
     shell:
-        "%(glove_bin)s/glove -save-file > {output} -threads 8 -input-file {input.shuff} -vocab-file {input.vocab} -x-max 10 -iter 5 -vector-size 300 -binary 2 -verbose 2"%{'glove_bin':Glove_Build}
+        "%(glove_bin)s/glove -save-file > {output} -threads 8 -input-file {input.shuff} -vocab-file {input.vocab} -x-max 10 -iter 10 -vector-size 300 -binary 2 -verbose 2"%{'glove_bin':Glove_Build}
+
+rule train_lexvec_vector:
+    input:
+        DATA + "/filtered/wiki_zh_tokened"
+    output:
+        DATA + "/lexvec/zhs_wiki_lexvec.vectors"
+    shell:
+        "%(lexvec_bin)s/lexvec  -corpus {input} -output > {output} -dim 300 -iterations 10 -subsample 1e-4 -window 5 -model 2 -negative 25 -minfreq 5 -threads 12 -pos=false"%{'lexvec_bin':Lexvec_Bin}
 
