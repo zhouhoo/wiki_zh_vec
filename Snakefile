@@ -124,5 +124,5 @@ rule train_glove_vector:
     output:
         DATA + "/glove/zhs_wiki_glove.vectors"
     shell:
-        "%(glove_bin)s/glove -save-file {output} -threads 8 -input-file {input.shuff} -vocab-file {input.vocab} -x-max 10 -iter 5 -vector-size 300 -binary 2 -verbose 2"%{'glove_bin':Glove_Build}
+        "%(glove_bin)s/glove -save-file > {output} -threads 8 -input-file {input.shuff} -vocab-file {input.vocab} -x-max 10 -iter 5 -vector-size 300 -binary 2 -verbose 2"%{'glove_bin':Glove_Build}
 
