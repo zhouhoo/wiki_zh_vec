@@ -136,5 +136,5 @@ rule train_lexvec_vector:
     output:
         DATA + "/lexvec/zhs_wiki_lexvec.vectors"
     shell:
-        "%(lexvec_bin)s/lexvec  -corpus {input} -output > {output} -dim 300 -iterations 10 -subsample 1e-4 -window 5 -model 2 -negative 25 -minfreq 5 -threads 12 -pos=false"%{'lexvec_bin':Lexvec_Bin}
+        "%(lexvec_bin)s/lexvec  -corpus {input} -output  {output} -dim 300 -iterations 10 -subsample 1e-4 -window 5 -model 2 -negative 25 -minfreq 5 -threads 12 -pos=false"%{'lexvec_bin':Lexvec_Bin}
 
